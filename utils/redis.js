@@ -8,16 +8,8 @@ class RedisClient {
     });
   }
 
-  async isAlive() {
-    return new Promise((resolve) => {
-      this.client.ping((err, res) => {
-        if (res) {
-          resolve(true);
-        } else {
-          resolve(false);
-        }
-      });
-    });
+  isAlive() {
+    return this.client.connected;
   }
 
   async get(key) {
