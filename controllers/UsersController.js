@@ -1,9 +1,9 @@
 const sha1 = require('sha1');
 const { v4: uuidv4 } = require('uuid');
-const { dbClient } = require('../utils/db');
+const dbClient = require('../utils/db');
 
-const UsersController = {
-  postNew: async (req, res) => {
+class UsersController {
+  static async postNew(req, res) {
     const { email, password } = req.body;
     if (!email) {
       res.status(400).json({ error: 'Missing email' });
@@ -27,7 +27,7 @@ const UsersController = {
     } catch (e) {
       res.status(400).json({ error: e.message });
     }
-  },
-};
+  }
+}
 
 module.exports = UsersController;
