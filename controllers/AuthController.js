@@ -21,6 +21,7 @@ class AuthController {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
+  // eslint-disable-next-line consistent-return
   static async getDisconnect(req, res) {
     const token = req.headers['x-token'];
     if (!token) {
@@ -32,7 +33,7 @@ class AuthController {
       return res.status(401).json({ error: 'Unauthorized' });
     }
     await redisClient.del(key);
-    return res.status(204).send();
+    res.status(204).send();
   }
 }
 
