@@ -1,4 +1,5 @@
 const { MongoClient } = require('mongodb');
+const sha1 = require('sha1');
 
 class DBClient {
   constructor() {
@@ -11,10 +12,11 @@ class DBClient {
     this.isConnected = false;
 
     this.client.connect((err) => {
-      if (!err) {
+      if (err) {
+        console.log('MongoDB error: ', err);
+      } else {
         this.isConnected = true;
       }
-      return false;
     });
   }
 
@@ -24,7 +26,6 @@ class DBClient {
 
   async nbUsers() {
     try {
-      await this.client.connect();
       const res = await this.client.db().collection('users').countDocuments();
       return res;
     } catch (err) {
@@ -35,8 +36,57 @@ class DBClient {
 
   async nbFiles() {
     try {
-      await this.client.connect();
       const res = await this.client.db().collection('files').countDocuments();
+      return res;
+    } catch (err) {
+      console.log('MongoDB error: ', err);
+      return -1;
+    }
+  }
+
+  async getUser(email) {
+    try {
+      const user = await this.client.db().collection('users').findOne({ email });
+      return user;
+    } catch (err) {
+      console.log('MongoDB error: ', err);
+      return -1;
+    }
+  }
+
+  async getUserById(id) {
+    try {
+      const userId = await this.client.db().collection('users').findOne({ _id: id });
+      return userId;
+    } catch (err) {
+      console.log('MongoDB error: ', err);
+      return -1;
+    }
+  }
+
+  async getUserByEmailAndPassword(email, password) {
+    try {
+      const user = await this.client.db().collection('users').findOne({ email, password: sha1(password) });
+      return user;
+    } catch (err) {
+      console.log('MongoDB error: ', err);
+      return -1;
+    }
+  }
+
+  async insertOneUser(user) {
+    try {
+      const res = await this.client.db().collection('users').insertOne(user);
+      return res;
+    } catch (err) {
+      console.log('MongoDB error: ', err);
+      return -1;
+    }
+  }
+
+  async getFiles() {
+    try {
+      const res = await this.client.db().collection('files').find().toArray();
       return res;
     } catch (err) {
       console.log('MongoDB error: ', err);
