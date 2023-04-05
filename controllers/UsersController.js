@@ -14,7 +14,7 @@ class UsersController {
     }
     const existingUser = await dbClient.getUser(email);
     if (existingUser) {
-      return res.status(400).json({ error: 'Already exists' });
+      return res.status(400).json({ error: 'Already exist' });
     }
     const hashedPass = sha1(password);
     const newUser = {
