@@ -1,6 +1,7 @@
 const sha1 = require('sha1');
 const { v4: uuidv4 } = require('uuid');
 const dbClient = require('../utils/db');
+const redisClient = require('../utils/redis');
 
 class UsersController {
   static async postNew(req, res) {
