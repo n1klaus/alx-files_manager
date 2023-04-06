@@ -1,4 +1,4 @@
-const { MongoClient, ObjectId } = require("mongodb");
+const { MongoClient } = require("mongodb");
 const sha1 = require("sha1");
 const assert = require("assert");
 
@@ -51,11 +51,10 @@ class DBClient {
 
   async getFileById(id) {
     try {
-      const objId = new ObjectId(id);
-      const res = await this.client
+      const file = await this.client
         .db()
         .collection("files")
-        .findOne({ _id: objId });
+        .findOne({ _id: id });
       return Promise.resolve(res);
     } catch (err) {
       return Promise.reject(err);
