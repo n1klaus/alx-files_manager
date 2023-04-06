@@ -62,6 +62,51 @@ class DBClient {
     }
   }
 
+  async getUserFile(fileId, userId) {
+    try {
+      const objId = new ObjectId(fileId);
+      const res = await this.client
+        .db()
+        .collection("files")
+        .findOne({ _id: objId, userId: userId });
+      return Promise.resolve(res);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  async getAndModifyFileBy(id, filterValues, updateValues) {
+    try {
+      const objId = new ObjectId(id);
+      const res = await this.client
+        .db()
+        .collection("files")
+        .findOneAndUpdate({ _id: objId, ...filterValues }, updateValues);
+      return Promise.resolve(res);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  async aggregateFiles(parentId, userId) {
+    const pipeline = [
+      { $match: { $parentId: parentId } },
+      { $group: { _id: userId } },
+      { $sort: { $name: -1 } },
+      { $count: "total_files" },
+    ];
+    try {
+      const res = await this.client
+        .db()
+        .collection("files")
+        .aggregate(pipeline)
+        .toArray();
+      return Promise.resolve(res);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
   async insertOneFile(file) {
     try {
       const res = await this.client.db().collection("files").insertOne(file);

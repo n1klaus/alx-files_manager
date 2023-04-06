@@ -5,9 +5,9 @@ const { fork, execFile } = require("child_process");
 const child = fork(__filename, ["child"]);
 
 const getFilePath = async (filename, parentFile) => {
-	if (parentFile) {
-  folderPath = folderPath + `/${parentFile};
-	}
+  if (parentFile) {
+    folderPath = folderPath + `/${parentFile}`;
+  }
   await fs.access(folderPath, fs.constants.F_OK, async (err) => {
     await fs.mkdir(folderPath, { recursive: true }, (err) => {
       if (err) return Promise.reject(err);
@@ -30,7 +30,7 @@ const str2int = (the_str) => {
 const createSystemGroup = async (groupName, groupId) => {
   try {
     let res;
-    //console.log(`Creating a new group ${groupName}`);
+    console.log(`Creating a new group ${groupName}`);
     await execFile(
       "/usr/bin/id",
       ["--group", groupName],
@@ -41,15 +41,15 @@ const createSystemGroup = async (groupName, groupId) => {
             ["/usr/sbin/groupadd", groupName, "--gid", groupId],
             (error, stdout, stderr) => {
               if (error) throw error;
-              //console.log(
-               // `Successfully created a new group ${groupName} ${stdout}`
-              //);
+              console.log(
+                `Successfully created a new group ${groupName} ${stdout}`
+              );
               res = stdout;
             }
           );
         } else {
           res = stdout;
-          //console.log(`Group ${groupName} already exists with id ${res}`);
+          console.log(`Group ${groupName} already exists with id ${res}`);
         }
       }
     );
@@ -65,7 +65,7 @@ const createSystemGroup = async (groupName, groupId) => {
 const createSystemUser = async (userName, userId, groupId, password) => {
   try {
     let res;
-    //console.log(`Creating a new user ${userName}`);
+    console.log(`Creating a new user ${userName}`);
     await execFile(
       "/usr/bin/id",
       ["--user", userName],
@@ -86,15 +86,15 @@ const createSystemUser = async (userName, userId, groupId, password) => {
             ],
             (error, stdout, stderr) => {
               if (error) throw error;
-              //console.log(
-                //`Successfully created a new user ${userName} ${stdout}`
-              //);
+              console.log(
+                `Successfully created a new user ${userName} ${stdout}`
+              );
               res = stdout;
             }
           );
         } else {
           res = stdout;
-          //console.log(`User ${userName} already exists with id ${res}`);
+          console.log(`User ${userName} already exists with id ${res}`);
         }
       }
     );
