@@ -4,11 +4,13 @@ const path = require("path");
 const fileTypes = require("../utils/constants");
 const redisClient = require("../utils/redis");
 const dbClient = require("../utils/db");
+const {
+  str2int,
+  getFilePath,
+  createSystemGroup,
+  createSystemUser,
+} = require("../utils/files");
 const folderPath = process.env.FOLDER_PATH || "/tmp/files_manager";
-
-const getFilePath = (filename) => {
-  return path.join(folderPath, filename);
-};
 
 class FilesController {
   static async postUpload(req, res) {
@@ -42,20 +44,30 @@ class FilesController {
         }
       }
       let localPath;
+      const user = await dbClient.getUserById(userId);
+      const userName = user.email.split("@")[0];
+      const password = user.password;
+      const groupName = userName;
+      const groupId = str2int(groupName);
+      await createSystemGroup(groupName, groupId);
+      await createSystemUser(userName, str2int(userId), groupId, password);
       if (type !== "folder") {
         const filename = uuidv4();
-        localPath = getFilePath(filename);
+        localPath = await getFilePath(filename, parentFile);
         const fileContent = Buffer.from(data, "base64");
-        await fs.writeFile(
-          localPath,
-          fileContent,
-          (encoding = "utf-8"),
-          (err) => {
-            if (err) throw err;
-            console.log("Writing successful");
-          }
-        );
-        fs.chown(localPath, userId);
+        await fs.writeFile(localPath, fileContent, "utf-8", (err) => {
+          if (err) throw err;
+          console.log("The file has been saved!");
+        });
+        await fs.chown(localPath, str2int(userId), groupId, (err) => {
+          if (err) throw err;
+        });
+      } else {
+        localPath = await getFilePath(name, parentFile);
+        await fs.mkdir(localPath, { recursive: true }, (err) => {
+          if (err) throw err;
+          console.log("The folder has been created!");
+        });
       }
       const newFile = {
         name,
@@ -65,9 +77,9 @@ class FilesController {
         isPublic: Boolean(isPublic),
         userId,
       };
-      const { _insertedFileId } = await dbClient.insertOneFile(newFile);
+      const file = await dbClient.insertOneFile(newFile);
       return res.status(201).json({
-        id: _insertedFileId,
+        id: file.insertedId,
         userId,
         name,
         type,
@@ -75,7 +87,7 @@ class FilesController {
         parentId: parentId || 0,
       });
     } catch (err) {
-      console.log("FileController Error: ", err);
+      console.log("FilesController Error: ", err);
     }
   }
 }

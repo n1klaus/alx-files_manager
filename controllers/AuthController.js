@@ -2,6 +2,17 @@ const { v4: uuidv4 } = require("uuid");
 const dbClient = require("../utils/db");
 const redisClient = require("../utils/redis");
 
+function isBase64(str) {
+  if (!str) {
+    return false;
+  }
+  try {
+    return btoa(atob(str)) == str;
+  } catch (err) {
+    return false;
+  }
+}
+
 class AuthController {
   static async getConnect(req, res) {
     try {
@@ -9,10 +20,11 @@ class AuthController {
       if (!authHeader || !authHeader.startsWith("Basic ")) {
         return res.status(401).json({ error: "Unauthorized" });
       }
-      const credentials = Buffer.from(
-        authHeader.substring("Basic ".length),
-        "base64"
-      ).toString("ascii");
+      const authString = authHeader.substring("Basic ".length);
+      if (!isBase64(authString)) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      const credentials = Buffer.from(authString, "base64").toString("ascii");
       const [email, password] = credentials.split(":");
       const user = await dbClient.getUserByEmailAndPassword(email, password);
       if (user) {
@@ -24,7 +36,7 @@ class AuthController {
       }
       return res.status(401).json({ error: "Unauthorized" });
     } catch (err) {
-      console.log("AuthController Error: ", err);
+      console.log("AuthController Connect Error: ", err);
     }
   }
 
@@ -42,7 +54,7 @@ class AuthController {
       await redisClient.del(key);
       return res.status(204).send();
     } catch (err) {
-      console.log("AuthController Error: ", err);
+      console.log("AuthController Disconnect Error: ", err);
     }
   }
 }

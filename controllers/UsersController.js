@@ -21,12 +21,11 @@ class UsersController {
       const newUser = {
         email,
         password: hashedPass,
-        _id: uuidv4(),
       };
       await dbClient.insertOneUser(newUser);
       return res.status(201).json({ id: newUser._id, email: newUser.email });
     } catch (err) {
-      console.log("UserControllers Error: ", err);
+      console.log("UserControllers post-new Error: ", err);
     }
   }
 }
@@ -46,7 +45,7 @@ class UserController {
       const user = await dbClient.getUserById(userId);
       return res.status(200).json({ id: user._id, email: user.email });
     } catch (err) {
-      console.log("UserController Error: ", err);
+      console.log("UserController get-me Error: ", err);
     }
   }
 }
