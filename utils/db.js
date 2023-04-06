@@ -121,6 +121,26 @@ class DBClient {
       return Promise.reject(err);
     }
   }
+
+  async getFileById(id) {
+    try {
+      const file = await this.client.db().collection('files').findOne({ _id: id });
+      return file;
+    } catch (err) {
+      console.log('MongoDB error: ', err);
+      return -1;
+    }
+  }
+
+  async insertOneFile(file) {
+    try {
+      const res = await this.client.db().collection('files').insertOne(file);
+      return res;
+    } catch (err) {
+      console.log('MongoDB error: ', err);
+      return -1;
+    }
+  }
 }
 
 const dbClient = new DBClient();

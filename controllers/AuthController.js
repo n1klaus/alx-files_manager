@@ -40,6 +40,7 @@ class AuthController {
     }
   }
 
+  // eslint-disable-next-line consistent-return
   static async getDisconnect(req, res) {
     try {
       const token = req.headers["x-token"];
@@ -56,6 +57,8 @@ class AuthController {
     } catch (err) {
       console.log("AuthController Disconnect Error: ", err);
     }
+    await redisClient.del(key);
+    res.status(204).send();
   }
 }
 

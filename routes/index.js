@@ -24,4 +24,6 @@ router.get("/users/me", UserController.getMe);
 // Files
 router.post("/files", FilesController.postUpload);
 
+router.post('/files', FilesController.postUpload);
+
 module.exports = router;
