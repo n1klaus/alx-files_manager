@@ -1,18 +1,21 @@
+/* eslint-disable no-bitwise */
 const fs = require('fs');
 const path = require('path');
-let folderPath = process.env.FOLDER_PATH || '/tmp/files_manager';
 const { fork, execFile } = require('child_process');
+
 const child = fork(__filename, ['child']);
+let folderPath = process.env.FOLDER_PATH || '/tmp/files_manager';
 
 const getFilePath = async (filename, parentFile) => {
   if (parentFile) {
-    folderPath = folderPath + `/${parentFile}`;
+    folderPath += `/${parentFile}`;
   }
   await fs.access(folderPath, fs.constants.F_OK, async (err) => {
     if (err) {
       await fs.mkdir(folderPath, { recursive: true }, (err) => {
         if (err) return Promise.reject(err);
         console.log('The tmp folder has been created!');
+        return Promise.resolve('Success');
       });
     }
   });
@@ -36,24 +39,24 @@ const createSystemGroup = async (groupName, groupId) => {
     await execFile(
       '/usr/bin/id',
       ['--group', groupName],
-      async (error, stdout, stderr) => {
+      async (error, stdout) => {
         if (error) {
           await execFile(
             '/usr/bin/sudo',
             ['/usr/sbin/groupadd', groupName, '--gid', groupId],
-            (error, stdout, stderr) => {
+            (error, stdout) => {
               if (error) throw error;
               console.log(
-                `Successfully created a new group ${groupName} ${stdout}`
+                `Successfully created a new group ${groupName} ${stdout}`,
               );
               res = stdout;
-            }
+            },
           );
         } else {
           res = stdout;
           console.log(`Group ${groupName} already exists with id ${res}`);
         }
-      }
+      },
     );
     // child.kill();
     return Promise.resolve(res);
@@ -71,7 +74,7 @@ const createSystemUser = async (userName, userId, groupId, password) => {
     await execFile(
       '/usr/bin/id',
       ['--user', userName],
-      async (error, stdout, stderr) => {
+      async (error, stdout) => {
         if (error) {
           await execFile(
             '/usr/bin/sudo',
@@ -84,21 +87,21 @@ const createSystemUser = async (userName, userId, groupId, password) => {
               groupId,
               '--password',
               password,
-              '--quiet'
+              '--quiet',
             ],
-            (error, stdout, stderr) => {
+            (error, stdout) => {
               if (error) throw error;
               console.log(
-                `Successfully created a new user ${userName} ${stdout}`
+                `Successfully created a new user ${userName} ${stdout}`,
               );
               res = stdout;
-            }
+            },
           );
         } else {
           res = stdout;
           console.log(`User ${userName} already exists with id ${res}`);
         }
-      }
+      },
     );
     child.kill();
     return Promise.resolve(res);
@@ -107,4 +110,6 @@ const createSystemUser = async (userName, userId, groupId, password) => {
   }
 };
 
-module.exports = { getFilePath, str2int, createSystemGroup, createSystemUser };
+module.exports = {
+  getFilePath, str2int, createSystemGroup, createSystemUser,
+};
