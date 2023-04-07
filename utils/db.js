@@ -1,12 +1,11 @@
-const { MongoClient, ObjectId } = require("mongodb");
-const sha1 = require("sha1");
-const assert = require("assert");
+const { MongoClient, ObjectId } = require('mongodb');
+const sha1 = require('sha1');
 
 class DBClient {
-  constructor() {
-    const DB_HOST = process.env.DB_HOST || "localhost";
+  constructor () {
+    const DB_HOST = process.env.DB_HOST || 'localhost';
     const DB_PORT = process.env.DB_PORT || 27017;
-    const DB_DATABASE = process.env.DB_DATABASE || "files_manager";
+    const DB_DATABASE = process.env.DB_DATABASE || 'files_manager';
     const URL = `mongodb://${DB_HOST}:${DB_PORT}/${DB_DATABASE}`;
 
     this.client = new MongoClient(URL, { useUnifiedTopology: true });
@@ -27,34 +26,34 @@ class DBClient {
     })();
   }
 
-  isAlive() {
+  isAlive () {
     return this.isConnected;
   }
 
-  async nbFiles() {
+  async nbFiles () {
     try {
-      const res = await this.client.db().collection("files").countDocuments();
+      const res = await this.client.db().collection('files').countDocuments();
       return Promise.resolve(res);
     } catch (err) {
       return Promise.reject(err);
     }
   }
 
-  async getFiles() {
+  async getFiles () {
     try {
-      const res = await this.client.db().collection("files").find().toArray();
+      const res = await this.client.db().collection('files').find().toArray();
       return Promise.resolve(res);
     } catch (err) {
       return Promise.reject(err);
     }
   }
 
-  async getFileById(id) {
+  async getFileById (id) {
     try {
       const objId = new ObjectId(id);
       const res = await this.client
         .db()
-        .collection("files")
+        .collection('files')
         .findOne({ _id: objId });
       return Promise.resolve(res);
     } catch (err) {
@@ -62,38 +61,83 @@ class DBClient {
     }
   }
 
-  async insertOneFile(file) {
+  async getUserFile (fileId, userId) {
     try {
-      const res = await this.client.db().collection("files").insertOne(file);
+      const objId = new ObjectId(fileId);
+      const res = await this.client
+        .db()
+        .collection('files')
+        .findOne({ _id: objId, userId: userId });
       return Promise.resolve(res);
     } catch (err) {
       return Promise.reject(err);
     }
   }
 
-  async nbUsers() {
+  async getAndModifyFileBy (id, filterValues, updateValues) {
     try {
-      const res = await this.client.db().collection("users").countDocuments();
+      const objId = new ObjectId(id);
+      const res = await this.client
+        .db()
+        .collection('files')
+        .findOneAndUpdate({ _id: objId, ...filterValues }, updateValues);
       return Promise.resolve(res);
     } catch (err) {
       return Promise.reject(err);
     }
   }
 
-  async getUser(email) {
-    try {
-      const res = await this.client.db().collection("users").findOne({ email });
-      return Promise.resolve(res);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  async getUserById(id) {
+  async aggregateFiles (parentId, userId) {
+    const pipeline = [
+      { $match: { $parentId: parentId } },
+      { $group: { _id: userId } },
+      { $sort: { $name: -1 } },
+      { $count: 'total_files' }
+    ];
     try {
       const res = await this.client
         .db()
-        .collection("users")
+        .collection('files')
+        .aggregate(pipeline)
+        .toArray();
+      return Promise.resolve(res);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  async insertOneFile (file) {
+    try {
+      const res = await this.client.db().collection('files').insertOne(file);
+      return Promise.resolve(res);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  async nbUsers () {
+    try {
+      const res = await this.client.db().collection('users').countDocuments();
+      return Promise.resolve(res);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  async getUser (email) {
+    try {
+      const res = await this.client.db().collection('users').findOne({ email });
+      return Promise.resolve(res);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  async getUserById (id) {
+    try {
+      const res = await this.client
+        .db()
+        .collection('users')
         .findOne({ _id: id });
       return Promise.resolve(res);
     } catch (err) {
@@ -101,11 +145,11 @@ class DBClient {
     }
   }
 
-  async getUserByEmailAndPassword(email, password) {
+  async getUserByEmailAndPassword (email, password) {
     try {
       const res = await this.client
         .db()
-        .collection("users")
+        .collection('users')
         .findOne({ email, password: sha1(password) });
       return Promise.resolve(res);
     } catch (err) {
@@ -113,9 +157,9 @@ class DBClient {
     }
   }
 
-  async insertOneUser(user) {
+  async insertOneUser (user) {
     try {
-      const res = await this.client.db().collection("users").insertOne(user);
+      const res = await this.client.db().collection('users').insertOne(user);
       return Promise.resolve(res);
     } catch (err) {
       return Promise.reject(err);
