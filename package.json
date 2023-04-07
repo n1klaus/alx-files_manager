@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "lint": ".\\node_modules\\.bin\\eslint *.js --fix",
-    "check-lint": ".\\node_modules\\.bin/eslint *.js",
+    "check-lint": ".\\node_modules\\.bin\\eslint *.js",
     "fmt": "prettier --write .",
     "check-fmt": "prettier --check .",
     "start-server": "nodemon --exec babel-node --presets @babel/preset-env ./server.js",
