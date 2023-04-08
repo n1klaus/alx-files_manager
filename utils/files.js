@@ -4,20 +4,12 @@ const path = require('path');
 const { fork, execFile } = require('child_process');
 
 const child = fork(__filename, ['child']);
-let folderPath = process.env.FOLDER_PATH || '/tmp/files_manager';
+const folderPath = process.env.FOLDER_PATH || '/tmp/files_manager';
 
-const getFilePath = async (filename, parentFile) => {
-  if (parentFile) {
-    folderPath += `/${parentFile}`;
-  }
-  await fs.access(folderPath, fs.constants.F_OK, async (err) => {
-    if (err) {
-      await fs.mkdir(folderPath, { recursive: true }, (err) => {
-        if (err) return Promise.reject(err);
-        console.log('The tmp folder has been created!');
-        return Promise.resolve('Success');
-      });
-    }
+const getFilePath = async (filename) => {
+  await fs.mkdir(folderPath, { recursive: true }, (err) => {
+    if (err) return Promise.reject(err);
+    return Promise.resolve('Success');
   });
   return Promise.resolve(path.join(folderPath, filename));
 };
@@ -45,11 +37,12 @@ const createSystemGroup = async (groupName, groupId) => {
             '/usr/bin/sudo',
             ['/usr/sbin/groupadd', groupName, '--gid', groupId],
             (error, stdout) => {
-              if (error) throw error;
-              console.log(
-                `Successfully created a new group ${groupName} ${stdout}`,
-              );
-              res = stdout;
+              if (!error) {
+                console.log(
+                  `Successfully created a new group ${groupName} ${stdout}`,
+                );
+                res = stdout;
+              }
             },
           );
         } else {
@@ -79,7 +72,7 @@ const createSystemUser = async (userName, userId, groupId, password) => {
           await execFile(
             '/usr/bin/sudo',
             [
-              '/usr/sbin/adduser',
+              '/usr/sbin/useradd',
               userName,
               '--uid',
               userId,
@@ -87,7 +80,6 @@ const createSystemUser = async (userName, userId, groupId, password) => {
               groupId,
               '--password',
               password,
-              '--quiet',
             ],
             (error, stdout) => {
               if (error) throw error;
@@ -111,5 +103,8 @@ const createSystemUser = async (userName, userId, groupId, password) => {
 };
 
 module.exports = {
-  getFilePath, str2int, createSystemGroup, createSystemUser,
+  getFilePath,
+  str2int,
+  createSystemGroup,
+  createSystemUser,
 };
