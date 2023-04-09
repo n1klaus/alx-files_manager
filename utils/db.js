@@ -11,18 +11,13 @@ class DBClient {
     this.client = new MongoClient(URL, { useUnifiedTopology: true });
     this.isConnected = false;
     (async () => {
-      try {
-        await this.client.connect((err) => {
-          if (err) {
-            throw err;
-          } else {
-            this.isConnected = true;
-          }
-        });
-      } catch (err) {
-        return Promise.reject(err);
-      }
-      return Promise.resolve(this.isConnected);
+      await this.client.connect((err) => {
+        if (err) {
+          throw err;
+        } else {
+          this.isConnected = true;
+        }
+      });
     })();
   }
 

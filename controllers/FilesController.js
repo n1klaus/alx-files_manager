@@ -196,11 +196,11 @@ class FilesController {
       filePath += `_${size}`;
     }
     let fileContent;
-    // eslint-disable-next-line consistent-return
     fs.access(filePath, fs.constants.F_OK | fs.constants.R_OK, (err) => {
       if (err) {
         return res.status(404).json({ error: 'Not found' });
       }
+      return res.status(200).send();
     });
     fs.readFile(filePath, 'utf-8', (err, data) => {
       if (err) throw err;
