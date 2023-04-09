@@ -2,16 +2,7 @@ const { v4: uuidv4 } = require('uuid');
 const dbClient = require('../utils/db');
 const redisClient = require('../utils/redis');
 
-const isBase64 = (str) => {
-  if (!str) {
-    return false;
-  }
-  try {
-    return Buffer.to(Buffer.from(str)) === str;
-  } catch (err) {
-    return false;
-  }
-};
+const isBase64 = (str) => Buffer.from(str, 'base64').toString('base64') === str;
 
 class AuthController {
   static async getConnect(req, res) {
@@ -23,7 +14,8 @@ class AuthController {
     if (!isBase64(authString)) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
-    const credentials = Buffer.from(authString, 'base64').toString('ascii');
+    const buff = Buffer.from(authString, 'base64');
+    const credentials = buff.toString('ascii');
     const [email, password] = credentials.split(':');
     const user = await dbClient.getUserByEmailAndPassword(email, password);
     if (user) {
@@ -36,7 +28,6 @@ class AuthController {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  // eslint-disable-next-line consistent-return
   static async getDisconnect(req, res) {
     const token = req.headers['x-token'];
     if (!token) {

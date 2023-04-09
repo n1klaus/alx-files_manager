@@ -11,7 +11,7 @@ setTimeout(() => {
   } else {
     console.log('MongoDB is not connected');
   }
-}, 3000);
+}, 1000);
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());

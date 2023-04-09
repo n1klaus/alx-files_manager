@@ -8,21 +8,16 @@ class DBClient {
     const DB_DATABASE = process.env.DB_DATABASE || 'files_manager';
     const URL = `mongodb://${DB_HOST}:${DB_PORT}/${DB_DATABASE}`;
 
-    this.client = new MongoClient(URL);
+    this.client = new MongoClient(URL, { useUnifiedTopology: true });
     this.isConnected = false;
     (async () => {
-      try {
-        await this.client.connect((err) => {
-          if (err) {
-            throw err;
-          } else {
-            this.isConnected = true;
-          }
-        });
-      } catch (err) {
-        return Promise.reject(err);
-      }
-      return Promise.resolve(this.isConnected);
+      await this.client.connect((err) => {
+        if (err) {
+          throw err;
+        } else {
+          this.isConnected = true;
+        }
+      });
     })();
   }
 
@@ -135,10 +130,11 @@ class DBClient {
 
   async getUserById(id) {
     try {
+      const userObjId = new ObjectId(id);
       const res = await this.client
         .db()
         .collection('users')
-        .findOne({ _id: id });
+        .findOne({ _id: userObjId });
       return Promise.resolve(res);
     } catch (err) {
       return Promise.reject(err);
@@ -163,26 +159,6 @@ class DBClient {
       return Promise.resolve(res);
     } catch (err) {
       return Promise.reject(err);
-    }
-  }
-
-  async getFileById(id) {
-    try {
-      const file = await this.client.db().collection('files').findOne({ _id: id });
-      return file;
-    } catch (err) {
-      console.log('MongoDB error: ', err);
-      return -1;
-    }
-  }
-
-  async insertOneFile(file) {
-    try {
-      const res = await this.client.db().collection('files').insertOne(file);
-      return res;
-    } catch (err) {
-      console.log('MongoDB error: ', err);
-      return -1;
     }
   }
 }
