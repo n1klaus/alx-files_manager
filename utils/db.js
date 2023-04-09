@@ -3,12 +3,12 @@ const sha1 = require('sha1');
 
 class DBClient {
   constructor() {
-    const DB_HOST = process.env.DB_HOST || '127.0.0.1';
+    const DB_HOST = process.env.DB_HOST || 'localhost';
     const DB_PORT = process.env.DB_PORT || 27017;
     const DB_DATABASE = process.env.DB_DATABASE || 'files_manager';
     const URL = `mongodb://${DB_HOST}:${DB_PORT}/${DB_DATABASE}`;
 
-    this.client = new MongoClient(URL);
+    this.client = new MongoClient(URL, { useUnifiedTopology: true });
     this.isConnected = false;
     (async () => {
       try {
@@ -87,11 +87,11 @@ class DBClient {
     }
   }
 
-  async aggregateFiles(parentId, userId) {
+  async aggregateFiles(pId, userId) {
     const pipeline = [
-      { $match: { $parentId: parentId } },
+      { $match: { parentId: pId } },
       { $group: { _id: userId } },
-      { $sort: { $name: -1 } },
+      { $sort: { name: -1 } },
       { $count: 'total_files' },
     ];
     try {
@@ -135,10 +135,11 @@ class DBClient {
 
   async getUserById(id) {
     try {
+      const userId = new ObjectId(id);
       const res = await this.client
         .db()
         .collection('users')
-        .findOne({ _id: id });
+        .findOne({ _id: userId });
       return Promise.resolve(res);
     } catch (err) {
       return Promise.reject(err);

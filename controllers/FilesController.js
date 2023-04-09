@@ -54,9 +54,9 @@ class FilesController {
     const groupId = str2int(groupName);
     await createSystemGroup(groupName, groupId);
     await createSystemUser(userName, str2int(userId), groupId, password);
+    const fileName = uuidv4();
     if (type !== 'folder') {
-      const filename = uuidv4();
-      localPath = await getFilePath(filename, parentFile);
+      localPath = await getFilePath(fileName);
       const fileContent = Buffer.from(data, 'base64');
       fs.writeFile(localPath, fileContent, 'utf-8', (err) => {
         if (err) {
@@ -70,13 +70,7 @@ class FilesController {
         }
       });
     } else {
-      localPath = await getFilePath(name, parentFile);
-      fs.mkdir(localPath, { recursive: true }, (err) => {
-        if (err) {
-          throw err;
-        }
-        console.log('The folder has been created!');
-      });
+      localPath = await getFilePath(fileName);
     }
     const newFile = {
       name,
@@ -87,6 +81,7 @@ class FilesController {
       userId,
     };
     const file = await dbClient.insertOneFile(newFile);
+
     if (file.type === 'image') {
       fileQueue.add(file);
     }
