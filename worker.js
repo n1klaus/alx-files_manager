@@ -6,14 +6,14 @@ const dbClient = require('./utils/db');
 const fileQueue = new Queue('image thumbnail generation');
 try {
   fileQueue.process(async (job) => {
-    const { fileId, userId } = job;
-    if (!fileId) {
+    const { _Id, userId } = job;
+    if (!_Id) {
       return Promise.reject(new Error('Missing fileId'));
     }
     if (!userId) {
       return Promise.reject(new Error('Missing userId'));
     }
-    const file = await dbClient.getUserFile(fileId, userId);
+    const file = await dbClient.getUserFile(_Id, userId);
     if (!file) {
       return Promise.reject(new Error('File not found'));
     }

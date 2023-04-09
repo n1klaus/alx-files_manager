@@ -2,7 +2,7 @@ const express = require('express');
 const AppController = require('../controllers/AppController');
 const {
   UsersController,
-  UserController,
+  UserController
 } = require('../controllers/UsersController');
 const AuthController = require('../controllers/AuthController');
 const FilesController = require('../controllers/FilesController');
