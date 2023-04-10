@@ -2,16 +2,12 @@
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
 const mime = require('mime-types');
+const path = require('path');
 const fileTypes = require('../utils/constants');
 const redisClient = require('../utils/redis');
 const dbClient = require('../utils/db');
-const fileQueue = require('../worker');
-const {
-  str2int,
-  getFilePath,
-  createSystemGroup,
-  createSystemUser,
-} = require('../utils/files');
+
+const relPath = process.env.FOLDER_PATH || '/tmp/files_manager';
 
 class FilesController {
   static async postUpload(req, res) {
@@ -46,52 +42,29 @@ class FilesController {
         return res.status(400).json({ error: 'Parent is not a folder' });
       }
     }
-    let localPath;
-    const user = await dbClient.getUserById(userId);
-    const userName = user.email.split('@')[0];
-    const { password } = user;
-    const groupName = userName;
-    const groupId = str2int(groupName);
-    await createSystemGroup(groupName, groupId);
-    await createSystemUser(userName, str2int(userId), groupId, password);
-    const fileName = uuidv4();
-    if (type !== 'folder') {
-      localPath = await getFilePath(fileName);
-      const fileContent = Buffer.from(data, 'base64');
-      fs.writeFile(localPath, fileContent, 'utf-8', (err) => {
-        if (err) {
-          throw err;
-        }
-        console.log('The file has been saved!');
-      });
-      fs.chown(localPath, str2int(userId), groupId, (err) => {
-        if (err) {
-          throw err;
-        }
-      });
-    } else {
-      localPath = await getFilePath(fileName);
-    }
+    const id = uuidv4();
+    const localPath = path.join(relPath, id);
     const newFile = {
+      userId,
       name,
       type,
+      isPublic: Boolean(isPublic),
+      parentId: parentId || 0,
       localPath,
-      parentId: parentId || 0,
-      isPublic: Boolean(isPublic),
-      userId,
     };
-    const file = await dbClient.insertOneFile(newFile);
-
-    if (file.type === 'image') {
-      fileQueue.add(file);
+    if (type !== 'folder') {
+      fs.mkdirSync(relPath, { recursive: true });
+      const decodedData = Buffer.from(data, 'base64');
+      fs.writeFileSync(localPath, decodedData);
     }
+    const { insertedId } = await dbClient.insertOneFile(newFile);
     return res.status(201).json({
-      id: file.insertedId,
-      userId,
-      name,
-      type,
-      isPublic: Boolean(isPublic),
-      parentId: parentId || 0,
+      id: insertedId,
+      userId: newFile.userId,
+      name: newFile.name,
+      type: newFile.type,
+      isPublic: newFile.isPublic,
+      parentId: newFile.parentId,
     });
   }
 
