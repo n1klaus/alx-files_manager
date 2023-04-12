@@ -69,35 +69,45 @@ class DBClient {
     }
   }
 
-  async getAndModifyFile(id, filterValues, updateValues) {
+  async getAndModifyFileTrue(id) {
     try {
       const objId = new ObjectId(id);
       const res = await this.client
         .db()
         .collection('files')
-        .findOneAndUpdate({ _id: objId, ...filterValues }, updateValues);
+        .updateOne({ _id: objId },
+          { $set: { isPublic: 'true' } });
       return Promise.resolve(res);
     } catch (err) {
       return Promise.reject(err);
     }
   }
 
-  async aggregateFiles(pId, userId) {
-    const pipeline = [
-      { $match: { parentId: pId } },
-      { $group: { _id: userId } },
-      { $sort: { name: -1 } },
-      { $count: 'total_files' },
-    ];
+  async getAndModifyFileFalse(id) {
     try {
+      const objId = new ObjectId(id);
       const res = await this.client
         .db()
         .collection('files')
-        .aggregate(pipeline)
-        .toArray();
+        .updateOne({ _id: objId },
+          { $set: { isPublic: 'false' } });
       return Promise.resolve(res);
     } catch (err) {
       return Promise.reject(err);
+    }
+  }
+
+  async getPaginatedFiles(parentId = 0, userId, page, limit) {
+    try {
+      const files = await this.client.db()
+        .collection('files')
+        .find({ parentId, userId })
+        .skip(page)
+        .limit(limit)
+        .toArray();
+      return Promise.resolve(files);
+    } catch (e) {
+      return Promise.reject(e);
     }
   }
 

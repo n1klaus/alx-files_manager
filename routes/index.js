@@ -27,7 +27,7 @@ router.get('/files', FilesController.getIndex);
 router.get('/files/:id', FilesController.getShow);
 router.put('/files/:id/publish', FilesController.putPublish);
 router.put('/files/:id/unpublish', FilesController.putUnPublish);
-router.get('/files/:id/data/:size', FilesController.getFile);
+router.get('/files/:id/data', FilesController.getFile);
 
 router.post('/files', FilesController.postUpload);
 
