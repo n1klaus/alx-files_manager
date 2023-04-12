@@ -2,7 +2,11 @@ const { v4: uuidv4 } = require('uuid');
 const dbClient = require('../utils/db');
 const redisClient = require('../utils/redis');
 
-const isBase64 = (str) => Buffer.from(str, 'base64').toString('base64') === str;
+const base64Regex = /^(?:[A-Za-z0-9+/]{4})*?(?:[A-Za-z0-9+/]{2}(?:==)?|[A-Za-z0-9+/]{3}=?)$/;
+
+function isValidBase64(str) {
+  return base64Regex.test(str);
+}
 
 class AuthController {
   static async getConnect(req, res) {
@@ -11,7 +15,8 @@ class AuthController {
       return res.status(401).json({ error: 'Unauthorized' });
     }
     const authString = authHeader.substring('Basic '.length);
-    if (!isBase64(authString)) {
+    const isValid = isValidBase64(authString);
+    if (!authString || isValid === false) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
     const buff = Buffer.from(authString, 'base64');
